@@ -1,1 +1,68 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-back: #ffffff;
+  --color-primary: #60a5fa;
+  --color-secondary: #3b82f6;
+  --color-accent: #f59e0b;
+  --color-basic: #111827;
+  --color-muted: #6b7280;
+
+  --color-back-dark: #111827;
+  --color-primary-dark: #1d4ed8;
+  --color-secondary-dark: #93c5fd;
+  --color-accent-dark: #fbbf24;
+  --color-basic-dark: #f9fafb;
+  --color-muted-dark: #9ca3af;
+
+  --animate-gradient-slide: gradient-slide 0.7s ease-out forwards;
+
+  @keyframes gradient-slide {
+    0% {
+      background-position: -100% 0;
+    }
+    100% {
+      background-position: 0 0;
+    }
+  }
+}
+
+body {
+  font-family: "Rubik", sans-serif;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* 
+Большие заголовки (Hero, Page Title)
+Tailwind: text-4xl → font-bold
+
+Размер: ~36px
+
+Межстрочный интервал: leading-tight
+
+📢 Подзаголовки (Section Title, Card Title)
+Tailwind: text-3xl → font-semibold
+
+Размер: ~24px
+
+Межстрочный интервал: leading-snug
+
+📄 Обычный текст (Body, Paragraph)
+Tailwind: text-2xl 
+
+Размер: ~16px
+
+Межстрочный интервал: leading-relaxed
+
+🔘 Текст кнопок
+Tailwind: text-sm → font-medium
+
+Размер: ~14px
+
+Межстрочный интервал: leading-none
+ */
