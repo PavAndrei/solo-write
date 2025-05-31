@@ -1,0 +1,53 @@
+# Node modules
+node_modules/
+server/node_modules/
+client/node_modules/
+
+# Production build
+dist/
+build/
+server/dist/
+client/dist/
+
+# Environment variables
+.env
+.env.*
+*.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / Editor junk
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# TypeScript
+*.tsbuildinfo
+
+# Coverage reports
+coverage/
+server/coverage/
+client/coverage/
+
+# Local development files
+*.local
+
+# Misc
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Optional: lockfiles (если используешь один менеджер, можешь убрать лишние)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
