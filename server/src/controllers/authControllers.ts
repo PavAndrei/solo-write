@@ -1,7 +1,8 @@
 import { hash } from "bcryptjs";
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 
 import { User } from "../models/User";
+import { errorHandler } from "../middlewares/errorHandler";
 import { signupSchema } from "../utils/validations/authValidation";
 
 interface SignupRequestBody {
@@ -10,24 +11,24 @@ interface SignupRequestBody {
   password: string;
 }
 
-export const signup = async (req: Request, res: Response) => {
+export const signup = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { username, email, password }: SignupRequestBody = req.body;
 
   try {
     const { error } = signupSchema.validate({ username, email, password });
 
     if (error) {
-      return res
-        .status(401)
-        .json({ success: false, message: error.details[0].message });
+      return next(errorHandler(401, error.details[0].message));
     }
 
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      return res
-        .status(409)
-        .json({ success: false, message: "User already exists" });
+      return next(errorHandler(409, "User already exists"));
     }
 
     const hashedPassword = await hash(password, 12);
@@ -48,7 +49,11 @@ export const signup = async (req: Request, res: Response) => {
       userWithoutPassword,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "error", err });
+    next(
+      errorHandler(
+        500,
+        err instanceof Error ? err.message : "Unknown server error"
+      )
+    );
   }
 };

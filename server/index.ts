@@ -1,8 +1,9 @@
-import express, { Application, Request, Response } from "express";
+import express, { Application } from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
 import { authRouter } from "./src/routes/auth";
+import { globalErrorHandler } from "./src/middlewares/globalErrorHandler";
 
 dotenv.config();
 
@@ -24,15 +25,13 @@ mongoose
 
 const app: Application = express();
 
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
 app.use(express.json());
 app.use(cors());
 
 app.use("/api/auth", authRouter);
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("🚀 Server is up and running!");
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+app.use(globalErrorHandler);
