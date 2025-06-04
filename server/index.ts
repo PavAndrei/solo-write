@@ -2,6 +2,7 @@ import express, { Application } from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
+import helmet from "helmet";
 import { authRouter } from "./src/routes/auth";
 import { globalErrorHandler } from "./src/middlewares/globalErrorHandler";
 
@@ -30,6 +31,7 @@ app.listen(PORT, () => {
 });
 
 app.use(express.json());
+app.use(helmet());
 app.use(cors());
 
 app.use("/api/auth", authRouter);
