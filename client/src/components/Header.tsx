@@ -23,14 +23,14 @@ export const Header: FC = () => {
             </span>
           </Link>
           <div className="flex gap-1.5">
-            <Link to="/log-in">
-              <GradientButton disabled={pathname === "/log-in"}>
-                Log In
-              </GradientButton>
-            </Link>
             <Link to="/sign-up">
               <GradientButton disabled={pathname === "/sign-up"}>
                 Sign Up
+              </GradientButton>
+            </Link>
+            <Link to="/sign-in">
+              <GradientButton disabled={pathname === "/sign-in"}>
+                Sign In
               </GradientButton>
             </Link>
           </div>

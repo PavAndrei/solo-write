@@ -2,8 +2,8 @@ import type { FC, ReactNode } from "react";
 
 interface GradientButtonProps {
   children: ReactNode;
-  disabled: boolean;
-  type: "submit" | "button" | "reset";
+  disabled?: boolean;
+  type?: "submit" | "button" | "reset";
 }
 
 export const GradientButton: FC<GradientButtonProps> = ({

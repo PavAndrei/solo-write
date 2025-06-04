@@ -3,8 +3,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import { Home } from "./pages/HomePage";
 import { SignUpPage } from "./pages/SignUpPage";
-import { LogIn } from "./pages/LogInPage";
+import { SignIn } from "./pages/SignInPage";
 import { Header } from "./components/Header";
+import { Dashboard } from "./pages/Dashboard";
 
 const App: FC = () => {
   return (
@@ -13,7 +14,8 @@ const App: FC = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/sign-up" element={<SignUpPage />} />
-        <Route path="/log-in" element={<LogIn />} />
+        <Route path="/sign-in" element={<SignIn />} />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </BrowserRouter>
   );
