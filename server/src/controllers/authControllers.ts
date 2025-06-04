@@ -9,18 +9,14 @@ import {
   signupSchema,
 } from "../utils/validations/authValidation";
 
-interface SignupRequestBody {
-  username: string;
-  email: string;
-  password: string;
-}
+import { SignupRequestBody, SigninRequestBody } from "../interfaces/auth";
 
 export const signup = async (
-  req: Request,
+  req: Request<{}, {}, SignupRequestBody>,
   res: Response,
   next: NextFunction
 ) => {
-  const { username, email, password }: SignupRequestBody = req.body;
+  const { username, email, password } = req.body;
 
   if (!username || !email || !password) {
     return next(errorHandler(400, "Bad request"));
@@ -62,7 +58,7 @@ export const signup = async (
 };
 
 export const signin = async (
-  req: Request,
+  req: Request<{}, {}, SigninRequestBody>,
   res: Response,
   next: NextFunction
 ) => {
@@ -95,12 +91,20 @@ export const signin = async (
         userId: existingUser._id,
         email: existingUser.email,
         verified: existingUser.verified,
+        role: existingUser.role,
       },
       process.env.TOKEN_SECRET,
       { expiresIn: "8h" }
     );
 
-    return res.status(200).json(token);
+    return res
+      .status(200)
+      .cookie("access_token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      })
+      .json({ success: true, message: "Log in successfully" });
   } catch (err) {
     next(err);
   }

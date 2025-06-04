@@ -1,4 +1,4 @@
-import { AppError } from "../types/AppError";
+import { AppError } from "../interfaces/error";
 
 export const errorHandler = (
   errOrStatus: unknown,
