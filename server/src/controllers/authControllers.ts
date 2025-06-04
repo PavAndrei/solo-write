@@ -1,9 +1,13 @@
-import { hash } from "bcryptjs";
+import { hash, compare } from "bcryptjs";
 import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 
 import { User } from "../models/User";
 import { errorHandler } from "../middlewares/errorHandler";
-import { signupSchema } from "../utils/validations/authValidation";
+import {
+  signinSchema,
+  signupSchema,
+} from "../utils/validations/authValidation";
 
 interface SignupRequestBody {
   username: string;
@@ -17,6 +21,10 @@ export const signup = async (
   next: NextFunction
 ) => {
   const { username, email, password }: SignupRequestBody = req.body;
+
+  if (!username || !email || !password) {
+    return next(errorHandler(400, "Bad request"));
+  }
 
   try {
     const { error } = signupSchema.validate({ username, email, password });
@@ -49,11 +57,51 @@ export const signup = async (
       userWithoutPassword,
     });
   } catch (err) {
-    next(
-      errorHandler(
-        500,
-        err instanceof Error ? err.message : "Unknown server error"
-      )
+    next(err);
+  }
+};
+
+export const signin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { email, password } = req.body;
+
+  try {
+    if (!email || !password) {
+      return next(errorHandler(400, "Bad request"));
+    }
+
+    const { error } = signinSchema.validate({ email, password });
+    if (error) {
+      return next(errorHandler(401, error.details[0].message));
+    }
+
+    const existingUser = await User.findOne({ email }).select("+password");
+
+    if (!existingUser) {
+      return next(errorHandler(401, "Invalid email or password"));
+    }
+
+    const result = await compare(password, existingUser.password);
+
+    if (!result) {
+      return next(errorHandler(401, "Invalid email or password"));
+    }
+
+    const token = jwt.sign(
+      {
+        userId: existingUser._id,
+        email: existingUser.email,
+        verified: existingUser.verified,
+      },
+      process.env.TOKEN_SECRET,
+      { expiresIn: "8h" }
     );
+
+    return res.status(200).json(token);
+  } catch (err) {
+    next(err);
   }
 };
