@@ -109,3 +109,22 @@ export const signin = async (
     next(err);
   }
 };
+
+export const signout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    res
+      .clearCookie("access_token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      })
+      .status(200)
+      .json({ success: true, message: "User has been signed out" });
+  } catch (err) {
+    next(err);
+  }
+};
