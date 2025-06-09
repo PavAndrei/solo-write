@@ -43,19 +43,23 @@ const UserSchema = new Schema<IUser>(
     verificationCode: {
       type: String,
       default: null,
+      select: false,
     },
-    verificationCodeExpiresAt: { type: Date, default: null },
+    verificationCodeExpiresAt: { type: Date, default: null, select: false },
     verificationCodeValidation: {
       type: Date,
       default: null,
+      select: false,
     },
     forgotPasswordCode: {
       type: String,
       default: null,
+      select: false,
     },
     forgotPasswordCodeValidation: {
       type: Date,
       default: null,
+      select: false,
     },
     role: {
       type: String,

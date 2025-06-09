@@ -35,3 +35,15 @@ export const emailVerificationSchema = Joi.object({
     "any.required": "Email is required.",
   }),
 });
+
+export const acceptCodeSchema = Joi.object({
+  email: Joi.string().email().required().messages({
+    "string.empty": "Email is required.",
+    "string.email": "Please provide a valid email address.",
+  }),
+  providedCode: Joi.string().length(6).pattern(/^\d+$/).required().messages({
+    "string.empty": "Verification code is required.",
+    "string.length": "Verification code must be 6 digits long.",
+    "string.pattern.base": "Verification code must contain only numbers.",
+  }),
+});

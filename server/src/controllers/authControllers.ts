@@ -8,12 +8,15 @@ import {
   signinSchema,
   signupSchema,
   emailVerificationSchema,
+  acceptCodeSchema,
 } from "../utils/validations/authValidation";
 import { sendVerificationEmail } from "../utils/sendVerificationEmail";
 import { hashCode } from "../utils/hashing/hashCode";
 
 import { SignupRequestBody, SigninRequestBody } from "../interfaces/auth";
 import { CODE_EXPIRATION_TIME_MS, CODE_RESEND_INTERVAL_MS } from "../constants";
+import { getRandomCodeValue } from "../utils/getRandomCodeValue";
+import { generateAndSendVerificationCode } from "../utils/generateAndSaveVerificationCode";
 
 export const signup = async (
   req: Request<{}, {}, SignupRequestBody>,
@@ -174,29 +177,86 @@ export const sendCode = async (
       );
     }
 
-    const codeValue = Math.floor(100000 + Math.random() * 900000).toString();
+    await generateAndSendVerificationCode(existingUser);
 
-    const info = await sendVerificationEmail(existingUser.email, codeValue);
+    res.status(200).json({
+      success: true,
+      message: "Verification code sent to your email.",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
-    if (info.accepted.includes(existingUser.email)) {
-      const hashedCodeValue = hashCode(codeValue);
+export const verifyCode = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { email, providedCode } = req.body;
 
-      existingUser.verificationCode = hashedCodeValue;
-      existingUser.verificationCodeValidation = new Date();
-      existingUser.verificationCodeExpiresAt = new Date(
-        Date.now() + CODE_EXPIRATION_TIME_MS
+  const { error } = acceptCodeSchema.validate({ email, providedCode });
+  if (error) {
+    return next(errorHandler(400, error.details[0].message));
+  }
+
+  try {
+    const user = await User.findOne({ email }).select(
+      "+verificationCode +verificationCodeValidation +verificationCodeExpiresAt"
+    );
+
+    if (!user) {
+      return next(
+        errorHandler(
+          404,
+          "If your email is registered, a verification code will be sent."
+        )
       );
-
-      await existingUser.save();
-
-      return res.status(200).json({
-        success: true,
-        message: "Verification code sent to your email.",
-      });
     }
 
-    return next(errorHandler(400, "Failed to send verification code."));
-  } catch (error) {
-    next(error);
+    if (user.verified) {
+      return next(
+        errorHandler(409, "Your email is already verified. Please log in.")
+      );
+    }
+
+    const { verificationCode, verificationCodeExpiresAt } = user;
+
+    if (!verificationCode || !verificationCodeExpiresAt) {
+      return next(
+        errorHandler(
+          400,
+          "Verification code not found. Please request a new one."
+        )
+      );
+    }
+
+    if (new Date() > verificationCodeExpiresAt) {
+      return next(
+        errorHandler(
+          410,
+          "Verification code has expired. Please request a new one."
+        )
+      );
+    }
+
+    const hashedProvidedCode = hashCode(providedCode.toString());
+
+    if (hashedProvidedCode !== verificationCode) {
+      return next(errorHandler(400, "Invalid verification code."));
+    }
+
+    user.verified = true;
+    user.verificationCode = null;
+    user.verificationCodeValidation = null;
+    user.verificationCodeExpiresAt = null;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Your account has been verified!",
+    });
+  } catch (err) {
+    next(err);
   }
 };

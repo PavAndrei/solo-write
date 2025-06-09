@@ -5,6 +5,7 @@ import {
   signin,
   signout,
   sendCode,
+  verifyCode,
 } from "../controllers/authControllers";
 
 export const authRouter = Router();
@@ -14,3 +15,4 @@ authRouter.post("/signin", signin);
 authRouter.post("/signout", signout);
 
 authRouter.patch("/send-code", sendCode);
+authRouter.patch("/verify-code", verifyCode);
