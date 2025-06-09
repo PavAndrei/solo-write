@@ -3,10 +3,11 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
 import helmet from "helmet";
-import { authRouter } from "./src/routes/auth";
-import { globalErrorHandler } from "./src/middlewares/globalErrorHandler";
 
 dotenv.config();
+
+import { globalErrorHandler } from "./src/middlewares/globalErrorHandler";
+import { authRouter } from "./src/routes/auth";
 
 const MONGO_URI = process.env.MONGO_CONNECTION_STRING || "";
 const PORT = process.env.PORT || 5000;

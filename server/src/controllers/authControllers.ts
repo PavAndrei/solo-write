@@ -7,9 +7,13 @@ import { errorHandler } from "../middlewares/errorHandler";
 import {
   signinSchema,
   signupSchema,
+  emailVerificationSchema,
 } from "../utils/validations/authValidation";
+import { sendVerificationEmail } from "../utils/sendVerificationEmail";
+import { hashCode } from "../utils/hashing/hashCode";
 
 import { SignupRequestBody, SigninRequestBody } from "../interfaces/auth";
+import { CODE_EXPIRATION_TIME_MS, CODE_RESEND_INTERVAL_MS } from "../constants";
 
 export const signup = async (
   req: Request<{}, {}, SignupRequestBody>,
@@ -126,5 +130,73 @@ export const signout = async (
       .json({ success: true, message: "User has been signed out" });
   } catch (err) {
     next(err);
+  }
+};
+
+export const sendCode = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { email } = req.body;
+
+  const { error } = emailVerificationSchema.validate({ email });
+
+  if (error) {
+    return next(errorHandler(400, error.details[0].message));
+  }
+
+  try {
+    const existingUser = await User.findOne({ email });
+
+    if (!existingUser) {
+      return next(
+        errorHandler(
+          404,
+          "If your email is registered, a verification code will be sent."
+        )
+      );
+    }
+
+    if (existingUser.verified) {
+      return next(
+        errorHandler(409, "Your email is already verified. Please log in.")
+      );
+    }
+
+    if (
+      existingUser.verificationCodeValidation &&
+      Date.now() - +existingUser.verificationCodeValidation <
+        CODE_RESEND_INTERVAL_MS
+    ) {
+      return next(
+        errorHandler(429, "Please wait before requesting a new code.")
+      );
+    }
+
+    const codeValue = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const info = await sendVerificationEmail(existingUser.email, codeValue);
+
+    if (info.accepted.includes(existingUser.email)) {
+      const hashedCodeValue = hashCode(codeValue);
+
+      existingUser.verificationCode = hashedCodeValue;
+      existingUser.verificationCodeValidation = new Date();
+      existingUser.verificationCodeExpiresAt = new Date(
+        Date.now() + CODE_EXPIRATION_TIME_MS
+      );
+
+      await existingUser.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Verification code sent to your email.",
+      });
+    }
+
+    return next(errorHandler(400, "Failed to send verification code."));
+  } catch (error) {
+    next(error);
   }
 };

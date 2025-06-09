@@ -6,6 +6,7 @@ export interface IUser extends Document {
   password: string;
   verified: boolean;
   verificationCode: string | null;
+  verificationCodeExpiresAt: Date | null;
   verificationCodeValidation: Date | null;
   forgotPasswordCode: string | null;
   forgotPasswordCodeValidation: Date | null;
@@ -43,6 +44,7 @@ const UserSchema = new Schema<IUser>(
       type: String,
       default: null,
     },
+    verificationCodeExpiresAt: { type: Date, default: null },
     verificationCodeValidation: {
       type: Date,
       default: null,
