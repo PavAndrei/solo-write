@@ -30,7 +30,7 @@ export const SignIn: FC = () => {
       const data = await response.json();
 
       if (!data.success) {
-        console.log("error");
+        return console.log("error");
       }
 
       if (response.ok) {

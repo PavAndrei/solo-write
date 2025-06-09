@@ -16,9 +16,37 @@ export const SignUpPage: React.FC = () => {
   const [fileUrl, setFileUrl] = useState("");
   const [checkbox, setCheckbox] = useState(false);
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formData = {
+      username,
+      email,
+      password,
+    };
+
+    try {
+      const response = await fetch(`/api/auth/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data);
+        return navigate("/profile");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <Container>
-      <div className="flex min-h-screen">
+      <div className="flex min-h- screen">
         <div className="w-1/2 p-10 bg-transparent text-basic">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
             <span className="bg-gradient-to-r from-pink-500 p-1 rounded-4xl">
@@ -35,7 +63,10 @@ export const SignUpPage: React.FC = () => {
           </p>
         </div>
 
-        <form className="w-1/2 p-10 flex flex-col gap-2">
+        <form
+          className="w-1/2 p-10 flex flex-col gap-2"
+          onSubmit={handleSubmit}
+        >
           <TextInput
             label="Username"
             type="text"
