@@ -3,6 +3,7 @@ import { Container } from "../components/Container";
 import { TextInput } from "../components/TextInput";
 import { GradientButton } from "../components/GradientButton";
 import { Link, useNavigate } from "react-router-dom";
+import { OAuth } from "../components/OAuth";
 
 export const SignIn: FC = () => {
   const navigate = useNavigate();
@@ -81,9 +82,11 @@ export const SignIn: FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+
+          <OAuth />
           <GradientButton type="submit">Sign In</GradientButton>
           <span>
-            Don't have an account yet?{" "}
+            Don't have an account yet?
             <Link to="/sign-up" className="text-secondary">
               Sign Up
             </Link>

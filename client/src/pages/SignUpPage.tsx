@@ -1,4 +1,3 @@
-// import { useForm } from "react-hook-form";
 import { TextInput } from "../components/TextInput";
 import { GradientButton } from "../components/GradientButton";
 import { Link, useNavigate } from "react-router-dom";
@@ -6,6 +5,7 @@ import { useState } from "react";
 import { FileInput } from "../components/FileInput";
 import { CheckboxInput } from "../components/CheckboxInput";
 import { Container } from "../components/Container";
+import { OAuth } from "../components/OAuth";
 
 export const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,6 +13,7 @@ export const SignUpPage: React.FC = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [checkbox, setCheckbox] = useState(false);
 
@@ -88,8 +89,23 @@ export const SignUpPage: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+
+          <TextInput
+            label="Repeat password"
+            type="password"
+            name="password"
+            value={password}
+            onChange={(e) => setRepeatPassword(e.target.value)}
+          />
+
           <FileInput />
           <CheckboxInput />
+
+          {/* <button className="p-4 border flex items-center justify-center gap-2">
+            <FaGoogle /> <span>Sign In With Google</span>
+          </button> */}
+
+          <OAuth />
 
           <div className="flex space-x-4">
             <GradientButton type="submit" disabled={false}>

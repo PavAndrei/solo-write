@@ -1,22 +1,16 @@
 import { hash, compare } from "bcryptjs";
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
 
 import { User } from "../models/User";
 import { errorHandler } from "../middlewares/errorHandler";
-import {
-  signinSchema,
-  signupSchema,
-  emailVerificationSchema,
-  acceptCodeSchema,
-} from "../utils/validations/authValidation";
-import { sendVerificationEmail } from "../utils/sendVerificationEmail";
 import { hashCode } from "../utils/hashing/hashCode";
 
 import { SignupRequestBody, SigninRequestBody } from "../interfaces/auth";
-import { CODE_EXPIRATION_TIME_MS, CODE_RESEND_INTERVAL_MS } from "../constants";
-import { getRandomCodeValue } from "../utils/getRandomCodeValue";
+import { CODE_RESEND_INTERVAL_MS } from "../constants";
 import { generateAndSendVerificationCode } from "../utils/generateAndSaveVerificationCode";
+import { generateToken } from "../utils/generateToken";
+import { generateRandomPassword } from "../utils/generateRandomPassword";
 
 export const signup = async (
   req: Request<{}, {}, SignupRequestBody>,
@@ -25,23 +19,7 @@ export const signup = async (
 ) => {
   const { username, email, password } = req.body;
 
-  if (!username || !email || !password) {
-    return next(errorHandler(400, "Bad request"));
-  }
-
   try {
-    const { error } = signupSchema.validate({ username, email, password });
-
-    if (error) {
-      return next(errorHandler(401, error.details[0].message));
-    }
-
-    const existingUser = await User.findOne({ email });
-
-    if (existingUser) {
-      return next(errorHandler(409, "User already exists"));
-    }
-
     const hashedPassword = await hash(password, 12);
 
     const newUser = new User({
@@ -52,7 +30,8 @@ export const signup = async (
 
     const result = await newUser.save();
 
-    const { password: string, ...userWithoutPassword } = result.toObject();
+    const { password: removedPassword, ...userWithoutPassword } =
+      result.toObject();
 
     res.status(201).json({
       success: true,
@@ -72,15 +51,6 @@ export const signin = async (
   const { email, password } = req.body;
 
   try {
-    if (!email || !password) {
-      return next(errorHandler(400, "Bad request"));
-    }
-
-    const { error } = signinSchema.validate({ email, password });
-    if (error) {
-      return next(errorHandler(401, error.details[0].message));
-    }
-
     const existingUser = await User.findOne({ email }).select("+password");
 
     if (!existingUser) {
@@ -93,14 +63,13 @@ export const signin = async (
       return next(errorHandler(401, "Invalid email or password"));
     }
 
-    const token = jwt.sign(
+    const token = generateToken(
       {
-        userId: existingUser._id,
+        userId: existingUser._id as string,
         email: existingUser.email,
         verified: existingUser.verified,
         role: existingUser.role,
       },
-      process.env.TOKEN_SECRET,
       { expiresIn: "8h" }
     );
 
@@ -109,7 +78,7 @@ export const signin = async (
       .cookie("access_token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: "lax",
       })
       .json({ success: true, message: "Log in successfully" });
   } catch (err) {
@@ -117,11 +86,7 @@ export const signin = async (
   }
 };
 
-export const signout = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const signout = (req: Request, res: Response, next: NextFunction) => {
   try {
     res
       .clearCookie("access_token", {
@@ -142,12 +107,6 @@ export const sendCode = async (
   next: NextFunction
 ) => {
   const { email } = req.body;
-
-  const { error } = emailVerificationSchema.validate({ email });
-
-  if (error) {
-    return next(errorHandler(400, error.details[0].message));
-  }
 
   try {
     const existingUser = await User.findOne({ email });
@@ -194,11 +153,6 @@ export const verifyCode = async (
   next: NextFunction
 ) => {
   const { email, providedCode } = req.body;
-
-  const { error } = acceptCodeSchema.validate({ email, providedCode });
-  if (error) {
-    return next(errorHandler(400, error.details[0].message));
-  }
 
   try {
     const user = await User.findOne({ email }).select(
@@ -256,6 +210,72 @@ export const verifyCode = async (
       success: true,
       message: "Your account has been verified!",
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const google = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+    const { credential } = req.body;
+
+    if (!credential) {
+      return next(errorHandler(400, "Invalid credentials"));
+    }
+
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    if (!payload || !payload.email) {
+      return next(errorHandler(400, "Invalid Google token"));
+    }
+
+    let existingUser = await User.findOne({ email: payload.email });
+
+    if (!existingUser) {
+      existingUser = await User.create({
+        email: payload.email,
+        verified: true,
+        username:
+          payload.name?.toLowerCase().split(" ").join("") +
+          Math.random().toString(9).slice(-4),
+        avatarUrl: payload.picture,
+        password: generateRandomPassword,
+      });
+    }
+
+    const token = generateToken(
+      {
+        userId: existingUser._id as string,
+        email: existingUser.email,
+        verified: existingUser.verified,
+        role: existingUser.role,
+      },
+      { expiresIn: "8h" }
+    );
+
+    if (token) {
+      return res
+        .cookie("access_token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+        })
+        .status(200)
+        .json({ success: true, message: "Logged in with Google" });
+    }
+
+    return next(errorHandler(500, "Unexpected error occured"));
   } catch (err) {
     next(err);
   }
