@@ -6,6 +6,9 @@ import { FileInput } from "../components/FileInput";
 import { CheckboxInput } from "../components/CheckboxInput";
 import { Container } from "../components/Container";
 import { OAuth } from "../components/OAuth";
+import { signUp } from "../api/apiAuth";
+import { useFetch } from "../hooks/useFetch";
+import { AuthInfo } from "../components/AuthInfo";
 
 export const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +20,8 @@ export const SignUpPage: React.FC = () => {
   const [fileUrl, setFileUrl] = useState("");
   const [checkbox, setCheckbox] = useState(false);
 
+  const { data, isLoading, error, execute } = useFetch(signUp);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -26,43 +31,14 @@ export const SignUpPage: React.FC = () => {
       password,
     };
 
-    try {
-      const response = await fetch(`/api/auth/signup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log(data);
-        return navigate("/profile");
-      }
-    } catch (error) {
-      console.log(error);
-    }
+    const result = await execute(formData);
+    console.log(result);
   };
 
   return (
     <Container>
       <div className="flex min-h- screen">
-        <div className="w-1/2 p-10 bg-transparent text-basic">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
-            <span className="bg-gradient-to-r from-pink-500 p-1 rounded-4xl">
-              Sign
-            </span>
-            <span className="bg-gradient-to-r to-yellow-500 p-1 rounded-4xl">
-              Up
-            </span>
-          </h1>
-          <p className="text-base md:text-2xl">
-            Welcome to our platform where you can write, share, and discover
-            amazing stories from creators all over the world. Join our community
-            and start your journey today!
-          </p>
-        </div>
+        <AuthInfo variant="signup" />
 
         <form
           className="w-1/2 p-10 flex flex-col gap-2"
@@ -100,10 +76,6 @@ export const SignUpPage: React.FC = () => {
 
           <FileInput />
           <CheckboxInput />
-
-          {/* <button className="p-4 border flex items-center justify-center gap-2">
-            <FaGoogle /> <span>Sign In With Google</span>
-          </button> */}
 
           <OAuth />
 
