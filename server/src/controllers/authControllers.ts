@@ -17,15 +17,30 @@ export const signup = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, fileUrl } = req.body;
 
   try {
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }],
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message:
+          existingUser.email === email
+            ? "Email already in use"
+            : "Username already taken",
+      });
+    }
+
     const hashedPassword = await hash(password, 12);
 
     const newUser = new User({
       username,
       email,
       password: hashedPassword,
+      fileUrl,
     });
 
     const result = await newUser.save();

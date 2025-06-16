@@ -2,7 +2,7 @@ import type { FC } from "react";
 import type { UseFormRegister } from "react-hook-form";
 import type { CombinedForm, SignUpForm } from "../interfaces";
 
-interface ITextFieldProps {
+interface TextFieldProps {
   label: string;
   placeholder: string;
   name: "email" | "password" | "username" | "repeatPassword";
@@ -11,7 +11,7 @@ interface ITextFieldProps {
   error?: string;
 }
 
-export const TextField: FC<ITextFieldProps> = ({
+export const TextField: FC<TextFieldProps> = ({
   label,
   placeholder,
   name,

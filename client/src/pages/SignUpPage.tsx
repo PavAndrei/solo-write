@@ -1,5 +1,4 @@
 import { FileInput } from "../components/FileInput";
-import { CheckboxInput } from "../components/CheckboxInput";
 import { Container } from "../components/Container";
 import { OAuth } from "../components/OAuth";
 import { signUp } from "../api/apiAuth";
@@ -13,6 +12,10 @@ import type { SignUpForm } from "../interfaces";
 import { joiResolver } from "@hookform/resolvers/joi";
 import { signUpSchema } from "../utils/schemas/authSchema";
 import { TextField } from "../components/TextFIeld";
+import { CheckboxField } from "../components/CheckboxField";
+import { Navigate } from "react-router-dom";
+import { FaSpinner } from "react-icons/fa";
+import { useEffect } from "react";
 
 export const SignUpPage: React.FC = () => {
   const { data, isLoading, error, execute } = useFetch(signUp);
@@ -23,8 +26,28 @@ export const SignUpPage: React.FC = () => {
   });
 
   const onSubmit: SubmitHandler<SignUpForm> = async (formData) => {
-    console.log(formData);
+    const sentFormData = {
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+      fileUrl: formData.fileUrl,
+    };
+    await execute(sentFormData);
   };
+
+  useEffect(() => {
+    if (data?.success === false) {
+      alert(data?.message);
+    }
+
+    if (error) {
+      alert(error?.message);
+    }
+  }, [data, error]);
+
+  if (data?.success) {
+    return <Navigate to="/" />;
+  }
 
   return (
     <Container>
@@ -35,8 +58,6 @@ export const SignUpPage: React.FC = () => {
           className="w-1/2 p-10 flex flex-col gap-2"
           onSubmit={handleSubmit(onSubmit)}
         >
-          <FileInput />
-
           <TextField
             label="Username"
             placeholder="username"
@@ -75,11 +96,23 @@ export const SignUpPage: React.FC = () => {
 
           <FileInput />
 
-          <input type="checkbox" {...register("terms")} />
+          <CheckboxField
+            text="I agree with the terms and conditions"
+            name="terms"
+            register={register}
+            error={formState.errors.terms?.message}
+          />
 
-          {/* <CheckboxInput /> */}
-
-          <Button buttonType="submit">Join the platform</Button>
+          <Button
+            disabled={!formState.isDirty || !formState.isValid}
+            buttonType="submit"
+          >
+            {isLoading ? (
+              <FaSpinner className="animate-spin"></FaSpinner>
+            ) : (
+              "Join the platform"
+            )}
+          </Button>
           <OAuth />
 
           <Suggestion

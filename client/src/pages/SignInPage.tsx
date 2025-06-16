@@ -67,7 +67,10 @@ export const SignIn: FC = () => {
             error={formState.errors.password?.message}
           />
 
-          <Button buttonType="submit">
+          <Button
+            disabled={!formState.isDirty || !formState.isValid}
+            buttonType="submit"
+          >
             {isLoading ? (
               <FaSpinner className="animate-spin"></FaSpinner>
             ) : (

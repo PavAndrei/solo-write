@@ -2,6 +2,7 @@ export interface SignupRequestBody {
   username: string;
   email: string;
   password: string;
+  fileUrl?: string;
 }
 
 export interface SigninRequestBody
