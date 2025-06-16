@@ -1,26 +1,49 @@
-import { useState, type FC } from "react";
+import { useEffect, type FC } from "react";
 import { Container } from "../components/Container";
-import { TextInput } from "../components/TextInput";
-import { GradientButton } from "../components/GradientButton";
-import { Link, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { OAuth } from "../components/OAuth";
 import { signIn } from "../api/apiAuth";
 import { useFetch } from "../hooks/useFetch";
 import { AuthInfo } from "../components/AuthInfo";
+import { TextField } from "../components/TextFIeld";
+import { Button } from "../components/Button";
+import { Suggestion } from "../components/Suggestion";
+import { SIGN_IN_MESSAGE } from "../constants/messages";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { signInSchema } from "../utils/schemas/authSchema";
+import { joiResolver } from "@hookform/resolvers/joi";
+import { FaSpinner } from "react-icons/fa";
+
+export interface IForm {
+  email: string;
+  password: string;
+}
 
 export const SignIn: FC = () => {
-  const navigate = useNavigate();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
   const { data, isLoading, error, execute } = useFetch(signIn);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const result = await execute({ email, password });
-    console.log(result);
+  const { register, handleSubmit, formState } = useForm<IForm>({
+    mode: "onChange",
+    resolver: joiResolver(signInSchema),
+  });
+
+  const onSubmit: SubmitHandler<IForm> = async (formData) => {
+    await execute(formData);
   };
+
+  useEffect(() => {
+    if (data?.success === false) {
+      alert(data?.message);
+    }
+
+    if (error) {
+      alert(error?.message);
+    }
+  }, [data, error]);
+
+  if (data?.success) {
+    return <Navigate to="/" />;
+  }
 
   return (
     <Container>
@@ -29,32 +52,39 @@ export const SignIn: FC = () => {
 
         <form
           className="w-1/2 p-10 flex flex-col gap-2 max-h-[500px]"
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
         >
-          <TextInput
-            label="Email"
-            type="email"
+          <TextField
+            label="Enter your email"
+            placeholder="user@gmail.com"
             name="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            register={register}
+            error={formState.errors.email?.message}
           />
-          <TextInput
-            label="Password"
-            type="password"
+          <TextField
+            label="Enter your password"
+            placeholder="********"
             name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            register={register}
+            error={formState.errors.password?.message}
           />
 
-          <OAuth />
+          <Button buttonType="submit">
+            {isLoading ? (
+              <FaSpinner className="animate-spin"></FaSpinner>
+            ) : (
+              "Sign In"
+            )}
+          </Button>
 
-          <GradientButton type="submit">Sign In</GradientButton>
-          <span>
-            Don't have an account yet?
-            <Link to="/sign-up" className="text-secondary">
-              Sign Up
-            </Link>
-          </span>
+          <Suggestion
+            message={SIGN_IN_MESSAGE}
+            path="/sign-up"
+            linkText="Sign Up"
+          />
+          <OAuth />
         </form>
       </div>
     </Container>

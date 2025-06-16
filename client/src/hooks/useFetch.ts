@@ -1,7 +1,12 @@
 import { useState, useCallback } from "react";
 
+interface IFetchData {
+  success: boolean;
+  message: string;
+}
+
 export const useFetch = (fetchFunction) => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<IFetchData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -12,10 +17,8 @@ export const useFetch = (fetchFunction) => {
         setError(null);
         const result = await fetchFunction(params);
         setData(result);
-        return result;
       } catch (err) {
         setError(err as Error);
-        return null;
       } finally {
         setIsLoading(false);
       }
