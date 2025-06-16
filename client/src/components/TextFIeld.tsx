@@ -1,13 +1,13 @@
 import type { FC } from "react";
-import type { IForm } from "../pages/SignInPage";
 import type { UseFormRegister } from "react-hook-form";
+import type { CombinedForm, SignUpForm } from "../interfaces";
 
 interface ITextFieldProps {
   label: string;
   placeholder: string;
-  name: "email" | "password";
+  name: "email" | "password" | "username" | "repeatPassword";
   type: string;
-  register: UseFormRegister<IForm>;
+  register: UseFormRegister<CombinedForm> | UseFormRegister<SignUpForm>;
   error?: string;
 }
 
@@ -27,9 +27,7 @@ export const TextField: FC<ITextFieldProps> = ({
         type={type}
         placeholder={placeholder}
         autoComplete="shipping work email"
-        {...register(name, {
-          required: `The field ${name} must be filled in.`,
-        })}
+        {...register(name)}
       />
       {error && <span className="text-red-700">{error}</span>}
     </label>

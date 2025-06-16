@@ -15,7 +15,9 @@ export const Suggestion: FC<ISuggestionProps> = ({
   return (
     <div className="flex gap-1.5">
       <span>{message}</span>
-      <Link to={path}>{linkText}</Link>
+      <Link className="text-blue-500" to={path}>
+        {linkText}
+      </Link>
     </div>
   );
 };

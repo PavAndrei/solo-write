@@ -13,21 +13,17 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import { signInSchema } from "../utils/schemas/authSchema";
 import { joiResolver } from "@hookform/resolvers/joi";
 import { FaSpinner } from "react-icons/fa";
-
-export interface IForm {
-  email: string;
-  password: string;
-}
+import type { SignInForm } from "../interfaces";
 
 export const SignIn: FC = () => {
   const { data, isLoading, error, execute } = useFetch(signIn);
 
-  const { register, handleSubmit, formState } = useForm<IForm>({
+  const { register, handleSubmit, formState } = useForm<SignInForm>({
     mode: "onChange",
     resolver: joiResolver(signInSchema),
   });
 
-  const onSubmit: SubmitHandler<IForm> = async (formData) => {
+  const onSubmit: SubmitHandler<SignInForm> = async (formData) => {
     await execute(formData);
   };
 
@@ -55,7 +51,7 @@ export const SignIn: FC = () => {
           onSubmit={handleSubmit(onSubmit)}
         >
           <TextField
-            label="Enter your email"
+            label="Email"
             placeholder="user@gmail.com"
             name="email"
             type="email"
@@ -63,7 +59,7 @@ export const SignIn: FC = () => {
             error={formState.errors.email?.message}
           />
           <TextField
-            label="Enter your password"
+            label="Password"
             placeholder="********"
             name="password"
             type="password"
