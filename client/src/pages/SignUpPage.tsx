@@ -26,12 +26,21 @@ export const SignUpPage: React.FC = () => {
   });
 
   const onSubmit: SubmitHandler<SignUpForm> = async (formData) => {
+    let fileUrl;
+
+    if (formData.fileUrl) {
+      fileUrl = formData.fileUrl[0];
+    }
+
     const sentFormData = {
       username: formData.username,
       email: formData.email,
       password: formData.password,
-      fileUrl: formData.fileUrl,
+      fileUrl: fileUrl,
     };
+
+    console.log(sentFormData);
+
     await execute(sentFormData);
   };
 
@@ -94,7 +103,9 @@ export const SignUpPage: React.FC = () => {
             error={formState.errors.repeatPassword?.message}
           />
 
-          <FileInput />
+          <input type="file" {...register("fileUrl")} />
+
+          {/* <FileInput name="fileUrl" register={register} /> */}
 
           <CheckboxField
             text="I agree with the terms and conditions"
@@ -104,7 +115,8 @@ export const SignUpPage: React.FC = () => {
           />
 
           <Button
-            disabled={!formState.isDirty || !formState.isValid}
+            // disabled={!formState.isDirty || !formState.isValid}
+            disabled={false}
             buttonType="submit"
           >
             {isLoading ? (

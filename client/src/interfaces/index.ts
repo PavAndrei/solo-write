@@ -3,7 +3,7 @@ export type SignUpForm = {
   email: string;
   password: string;
   repeatPassword: string;
-  fileUrl?: string;
+  fileUrl?: FileList;
   terms: boolean;
 };
 

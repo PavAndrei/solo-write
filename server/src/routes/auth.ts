@@ -16,10 +16,18 @@ import {
   emailVerificationSchema,
   acceptCodeSchema,
 } from "../utils/validations/authValidation";
+import { upload } from "../config/multer";
+import { appendFileUrl } from "../middlewares/appendFileUrl";
 
 export const authRouter = Router();
 
-authRouter.post("/signup", validateBody(signupSchema), signup);
+authRouter.post(
+  "/signup",
+  upload.single("avatar"),
+  appendFileUrl,
+  validateBody(signupSchema),
+  signup
+);
 authRouter.post("/signin", validateBody(signinSchema), signin);
 authRouter.post("/signout", verifyUser, signout);
 

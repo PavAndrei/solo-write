@@ -15,6 +15,9 @@ export const signupSchema = Joi.object({
     "string.min": "Password must be at least 6 characters",
     "string.max": "Password must be at most 50 characters",
   }),
+  fileUrl: Joi.string().uri().optional().messages({
+    "string.uri": "fileUrl must be a valid URL",
+  }),
 });
 
 export const signinSchema = Joi.object({

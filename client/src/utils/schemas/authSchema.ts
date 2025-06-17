@@ -35,9 +35,7 @@ export const signUpSchema = Joi.object({
     "any.required": "Please confirm your password",
   }),
 
-  fileUrl: Joi.string().allow("", null).optional(),
-
   terms: Joi.boolean().valid(true).required().messages({
     "any.only": "You must accept the terms to proceed",
   }),
-});
+}).unknown(true);
